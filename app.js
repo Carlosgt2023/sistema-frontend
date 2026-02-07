@@ -3,8 +3,8 @@
 // =============================================
 
 // URL base de la API - CAMBIAR EN PRODUCCIÓN
-// const API_URL = 'http://localhost:3000/api';
-const API_URL = "https://sistema-backend.onrender.com";
+//const API_URL = 'http://localhost:3000/api';
+  const API_URL = "https://sistema-backend.onrender.com/api";
 
 
 // =============================================
@@ -13,7 +13,8 @@ const API_URL = "https://sistema-backend.onrender.com";
 
 async function checkAPIConnection() {
     try {
-        const response = await fetch('http://localhost:3000/');
+       const response = await fetch('https://sistema-backend.onrender.com/');
+//     const response = await fetch('http://localhost:3000/');
         if (response.ok) {
             document.getElementById('apiStatus').textContent = '🟢 Conectado';
             document.getElementById('apiStatus').classList.remove('disconnected');
