@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Membresías - Con Backend</title>
+    <style>
+        /* ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* ENCABEZADO */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .api-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .api-status.connected {
+            background: #28a745;
+        }
+
+        .api-status.disconnected {
+            background: #dc3545;
+        }
+
+        /* NAVEGACIÓN POR PESTAÑAS */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* FORMULARIO */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* BOTONES */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        /* TABLA */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* BADGE DE ESTADO */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-expiring {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* ESTADÍSTICAS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* FILTROS */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* ALERTA */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* LOADER */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ENCABEZADO -->
+        <div class="header">
+            <h1>🎯 Sistema de Gestión de Membresías</h1>
+            <p>Sistema completo con base de datos MySQL</p>
+            <div class="api-status disconnected" id="apiStatus">
+                🔴 Desconectado
+            </div>
+        </div>
+
+        <!-- PESTAÑAS DE NAVEGACIÓN -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('memberships')">📋 Membresías</button>
+            <button class="tab-button" onclick="openTab('recharges')">💳 Recargas</button>
+            <button class="tab-button" onclick="openTab('reports')">📊 Reportes Financieros</button>
+            <button class="tab-button" onclick="openTab('notifications')">🔔 Notificaciones</button>
+        </div>
+
+        <!-- ALERTA GLOBAL -->
+        <div id="globalAlert" class="alert"></div>
+
+        <!-- PESTAÑA: GESTIÓN DE MEMBRESÍAS -->
+        <div id="memberships" class="tab-content active">
+            <h2 style="margin-bottom: 20px;">Gestión de Membresías</h2>
+            
+            <!-- FORMULARIO DE MEMBRESÍA -->
+            <form id="membershipForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="clientName">Nombre del Cliente *</label>
+                        <input type="text" id="clientName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientId">ID Cliente *</label>
+                        <input type="text" id="clientId" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="serviceName">Nombre del Servicio *</label>
+                        <input type="text" id="serviceName" placeholder="Netflix, Spotify, etc." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="provider">Proveedor del Servicio *</label>
+                        <input type="text" id="provider" placeholder="Nombre del proveedor" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">Duración de Membresía *</label>
+                        <select id="duration" required>
+                            <option value="">Seleccione...</option>
+                            <option value="1">1 Mes</option>
+                            <option value="2">2 Meses</option>
+                            <option value="3">3 Meses</option>
+                            <option value="6">6 Meses</option>
+                            <option value="12">1 Año</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purchaseDate">Fecha de Compra *</label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expirationDate">Fecha de Vencimiento *</label>
+                        <input type="date" id="expirationDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purchasePrice">Precio de Compra (Q) *</label>
+                        <input type="number" id="purchasePrice" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salePrice">Precio de Venta (Q) *</label>
+                        <input type="number" id="salePrice" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accessEmail">Correo de Acceso *</label>
+                        <input type="email" id="accessEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accessPassword">Contraseña de Acceso *</label>
+                        <input type="text" id="accessPassword" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="securityPin">PIN de Seguridad</label>
+                        <input type="text" id="securityPin">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileName">Nombre del Perfil</label>
+                        <input type="text" id="profileName">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whatsappNumber">Número de WhatsApp *</label>
+                        <input type="tel" id="whatsappNumber" placeholder="50212345678" required>
+                    </div>
+                </div>
+
+                <input type="hidden" id="editId" value="">
+                
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        ✅ Guardar Membresía
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="clearForm()">
+                        🔄 Limpiar Formulario
+                    </button>
+                </div>
+            </form>
+
+            <!-- FILTROS -->
+            <div class="filters" style="margin-top: 40px;">
+                <div class="filter-group">
+                    <label>Filtrar por Estado:</label>
+                    <select id="filterStatus" onchange="loadMemberships()">
+                        <option value="">Todos</option>
+                        <option value="active">Activos</option>
+                        <option value="expiring">Por Vencer</option>
+                        <option value="expired">Vencidos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Buscar:</label>
+                    <input type="text" id="searchInput" placeholder="Buscar cliente o servicio..." onkeyup="loadMemberships()">
+                </div>
+            </div>
+
+            <!-- TABLA DE MEMBRESÍAS -->
+            <div class="table-container">
+                <div id="membershipLoader" class="loader" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Cliente</th>
+                            <th>Nombre</th>
+                            <th>Servicio</th>
+                            <th>Proveedor</th>
+                            <th>Duración</th>
+                            <th>Vencimiento</th>
+                            <th>Ganancia</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membershipTable">
+                        <!-- Los datos se cargarán desde el backend -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PESTAÑA: RECARGAS -->
+        <div id="recharges" class="tab-content">
+            <h2 style="margin-bottom: 20px;">Gestión de Recargas</h2>
+            
+            <form id="rechargeForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="rechargeClientId">ID Cliente *</label>
+                        <input type="text" id="rechargeClientId" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rechargeAmount">Monto de Recarga (Q) *</label>
+                        <input type="number" id="rechargeAmount" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rechargeDate">Fecha de Recarga *</label>
+                        <input type="date" id="rechargeDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rechargeNote">Nota / Descripción</label>
+                        <textarea id="rechargeNote" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">💰 Registrar Recarga</button>
+            </form>
+
+            <div class="table-container">
+                <div id="rechargeLoader" class="loader" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Cliente</th>
+                            <th>Nombre Cliente</th>
+                            <th>Monto</th>
+                            <th>Fecha</th>
+                            <th>Nota</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rechargeTable">
+                        <!-- Los datos se cargarán desde el backend -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PESTAÑA: REPORTES FINANCIEROS -->
+        <div id="reports" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📊 Reportes Financieros</h2>
+            
+            <!-- ESTADÍSTICAS -->
+            <div class="stats-grid">
+                <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <h3>Ingresos Totales</h3>
+                    <div class="value" id="totalRevenue">Q 0.00</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
+                    <h3>Costos Totales</h3>
+                    <div class="value" id="totalCosts">Q 0.00</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3>Ganancia Neta</h3>
+                    <div class="value" id="netProfit">Q 0.00</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                    <h3>Membresías Activas</h3>
+                    <div class="value" id="activeMemberships">0</div>
+                </div>
+            </div>
+
+            <!-- FILTROS DE FECHA -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Desde:</label>
+                    <input type="date" id="reportStartDate">
+                </div>
+                <div class="filter-group">
+                    <label>Hasta:</label>
+                    <input type="date" id="reportEndDate">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-info" onclick="generateReport()">📈 Generar Reporte</button>
+                    <button class="btn btn-success" onclick="exportReport()">📥 Exportar CSV</button>
+                </div>
+            </div>
+
+            <!-- TABLA DE REPORTE -->
+            <div class="table-container">
+                <div id="reportLoader" class="loader" style="display: none;"></div>
+                <h3>Detalle de Transacciones</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Fecha</th>
+                            <th>Costo</th>
+                            <th>Venta</th>
+                            <th>Ganancia</th>
+                            <th>Margen %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTable">
+                        <!-- Los datos se cargarán desde el backend -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PESTAÑA: NOTIFICACIONES -->
+        <div id="notifications" class="tab-content">
+            <h2 style="margin-bottom: 20px;">🔔 Notificaciones de Vencimiento</h2>
+            
+            <div class="alert alert-success" style="display: block;">
+                ℹ️ El sistema verifica automáticamente las membresías que están por vencer.
+                Haz clic en el botón de WhatsApp para enviar recordatorios.
+            </div>
+
+            <div class="table-container">
+                <div id="notificationLoader" class="loader" style="display: none;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Fecha Vencimiento</th>
+                            <th>Días</th>
+                            <th>Estado</th>
+                            <th>WhatsApp</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notificationTable">
+                        <!-- Los datos se cargarán desde el backend -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER DETALLES -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>📄 Detalles de Membresía</h2>
+            <div id="detailContent"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
