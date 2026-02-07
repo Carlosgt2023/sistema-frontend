@@ -3,28 +3,50 @@
 // =============================================
 
 // URL base de la API - CAMBIAR EN PRODUCCIÓN
-//const API_URL = 'http://localhost:3000/api';
-  const API_URL = "https://sistema-backend.onrender.com/api";
-
+const API_URL = 'https://sistema-backend-b3zt.onrender.com/api';
 
 // =============================================
 // VERIFICAR CONEXIÓN CON EL BACKEND
 // =============================================
 
 async function checkAPIConnection() {
+    const statusEl = document.getElementById('apiStatus');
+    
     try {
-       const response = await fetch('https://sistema-backend.onrender.com/');
-//     const response = await fetch('http://localhost:3000/');
+        // Mostrar estado "conectando"
+        statusEl.textContent = '🟡 Conectando...';
+        statusEl.classList.remove('connected', 'disconnected');
+        statusEl.style.background = '#ffc107';
+        
+        // Intentar conexión con timeout de 60 segundos (Render puede tardar)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        const response = await fetch('https://sistema-backend-b3zt.onrender.com/', {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
-            document.getElementById('apiStatus').textContent = '🟢 Conectado';
-            document.getElementById('apiStatus').classList.remove('disconnected');
-            document.getElementById('apiStatus').classList.add('connected');
+            statusEl.textContent = '🟢 Conectado';
+            statusEl.classList.remove('disconnected');
+            statusEl.classList.add('connected');
+            statusEl.style.background = '';
             return true;
         }
     } catch (error) {
-        document.getElementById('apiStatus').textContent = '🔴 Desconectado';
-        document.getElementById('apiStatus').classList.remove('connected');
-        document.getElementById('apiStatus').classList.add('disconnected');
+        if (error.name === 'AbortError') {
+            statusEl.textContent = '🔴 Tiempo agotado (Backend dormido)';
+        } else {
+            statusEl.textContent = '🔴 Desconectado';
+        }
+        statusEl.classList.remove('connected');
+        statusEl.classList.add('disconnected');
+        statusEl.style.background = '';
+        
+        // Mostrar sugerencia al usuario
+        showAlert('El backend puede estar dormido. Espera 30 segundos y recarga la página.', 'warning');
         return false;
     }
 }
