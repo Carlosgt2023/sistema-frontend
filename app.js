@@ -3,7 +3,9 @@
 // =============================================
 
 // URL base de la API - CAMBIAR EN PRODUCCIÓN
-const API_URL = 'http://localhost:3000/api';
+// const API_URL = 'http://localhost:3000/api';
+const API_URL = "https://sistema-backend.onrender.com";
+
 
 // =============================================
 // VERIFICAR CONEXIÓN CON EL BACKEND
