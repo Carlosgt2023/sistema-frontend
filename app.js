@@ -177,14 +177,15 @@ function displayMemberships(memberships) {
             <tr>
                 <td>${membership.client_id}</td>
                 <td>${membership.client_name}</td>
+                <td>${membership.profile_name}</td>
                 <td>${membership.service_name}</td>
-                <td>${membership.provider}</td>
                 <td>${membership.duration} ${membership.duration == 1 ? 'Mes' : 'Meses'}</td>
                 <td>${formatDate(membership.expiration_date)}</td>
+                <td>${statusBadge}</td>
+                <td>${membership.provider}</td>
                 <td style="color: ${membership.profit >= 0 ? 'green' : 'red'}; font-weight: bold;">
                     Q ${parseFloat(membership.profit).toFixed(2)}
                 </td>
-                <td>${statusBadge}</td>
                 <td>
                     <button class="btn btn-info" onclick="viewDetails(${membership.id})" title="Ver">👁️</button>
                     <button class="btn btn-warning" onclick="editMembership(${membership.id})" title="Editar">✏️</button>
