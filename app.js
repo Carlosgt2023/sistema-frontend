@@ -133,7 +133,7 @@ async function loadMemberships() {
     
     try {
         const status = document.getElementById('filterStatus').value;
-        const search = document.getElementById('searchInput').value;
+        const search = document.getElementById('searchInput').value.trim();
         
         let url = `${API_URL}/memberships`;
         
@@ -141,7 +141,7 @@ async function loadMemberships() {
         if (status || search) {
             url = `${API_URL}/memberships/search/filter?`;
             if (status) url += `status=${status}&`;
-            if (search) url += `serviceName=${search}&clientId=${search}`;
+            if (search) url += `search=${encodeURIComponent(search)}`;
         }
         
         const response = await fetch(url);
@@ -694,3 +694,10 @@ window.onload = async function() {
 
 // Verificar conexión cada 30 segundos
 setInterval(checkAPIConnection, 30000);
+
+// Mostrar mensaje cuando no hay resultados
+function showNoResults(isEmpty) {
+  const el = document.getElementById('noResults');
+  if (!el) return;
+  el.style.display = isEmpty ? 'block' : 'none';
+}
